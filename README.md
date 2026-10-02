@@ -20,7 +20,7 @@ Research the Android game market, select a small first MVP, build it in Godot, t
 
 ## Club Legacy — Phase 0 bootstrap
 
-Project: `games/club-legacy/project.godot`. Import this file in the Godot project manager. The Main scene contains only ScreenHost and DialogLayer; there is no gameplay yet.
+Project: `games/club-legacy/project.godot`. Import this file in the Godot project manager. The phase records below describe successive deliveries; the current project includes the Phase 5 Vertical Slice.
 
 Validated with **Godot 4.7.2.stable.official.ed1daf0bf** (Windows headless). Compatibility renderer is configured; viewport dimensions are bootstrap placeholders, not a final Android layout decision.
 
@@ -42,3 +42,7 @@ Phase 2 adds explicit JSON schema 1 persistence, checksum and redundant A/B snap
 Phase 3 adds a deterministic calendar, externally supplied results, derived standings and season completion. Persistence uses schema 2 with a tested schema 1 migration. The runner verifies **322 passed, 0 failed**, preserving the previous 136 checks. No Match Engine or annual division transition is implemented. See [Phase 3 QA report](reports/qa/phase-3-season-competition.md).
 
 Phase 4 adds an independent incremental Match Engine, tactical commands and three substitutions, with active-match checkpoints in save schema 3 and migration from schema 2. The full runner verifies **410 passed, 0 failed**, preserving the previous 322 checks. TEST / PLACEHOLDER batch: 10,000 matches plus 2,000 paired home-advantage comparisons. Run the batch separately with `godot --headless --path games/club-legacy --script res://tests/simulation/run_match_batch.gd`. No match UI, Vertical Slice or Android validation yet. See [Phase 4 QA report](reports/qa/phase-4-match-engine.md).
+
+Phase 5 adds a desktop Vertical Slice: create a manager, choose a club profile, select a lineup, follow an incremental match, receive its result and view updated standings. Open the project and run it with F6 (Main) or F5. Save explicitly with **Salvar**; **Continuar** loads the last saved checkpoint, including a paused active match. Closing without saving loses changes after that checkpoint. Pre-match selections and the detailed result screen are transient; committed fixture scores remain saved. There is no operational economy or annual career transition yet.
+
+The full runner verifies **490 passed, 0 failed** (410 previous checks + 80 new checks); the intentional probe returns exit 1. A graphical smoke rendered nine screens that were inspected, but real mouse/keyboard interaction remains **OWNER CHECK REQUIRED**. Fast slice-only checks: `godot --headless --path games/club-legacy --script res://tests/run_vertical_slice.gd`. This is not the complete MVP; Phase 6 and Android were not started. See [Phase 5 QA report](reports/qa/phase-5-vertical-slice.md).

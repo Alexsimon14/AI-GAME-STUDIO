@@ -78,6 +78,8 @@ Smoke Android no bootstrap, se ambiente estiver disponível/autorizado para exec
 
 ## Fase 5 — CLUB LEGACY VERTICAL SLICE
 
+**Execução autorizada:** somente Fase 5, UI desktop provisória escura em Containers, fluxo Start/Home/Elenco/Escalação/Partida/Resultado/Tabela, GameSession coordenando uma aplicação testável sem SceneTree. Reutilizar motor e competição; IA de escalação mínima por posição/overall/ID, seed de fixture derivada de modo estável e versionado. Pausa e 1x/2x/4x somente na apresentação; intervalo exige continuar. Save explícito com schema 3 existente e retomada de active_match; nenhum autosave. Publicar fechamento da rodada por candidato validado, preservando estado anterior em falha. Escalação pré-jogo e resultado detalhado são dados transitórios, sem promessa de histórico completo persistente. Confirmar descarte/substituição de carreira; nunca apagar save para contornar erro. Preservar 410 testes e registrar smoke gráfico observado ou OWNER CHECK REQUIRED. Sem economia/Fase 6, Android ou instalação.
+
 **Depende de:** fases 1–4; pendências de primeira experiência/UI1 minimamente resolvidas para testar o fluxo.
 
 **Primeiro grande marco técnico:**
@@ -97,6 +99,8 @@ UI mínima de criação/Home/escalação/partida/tabela, usando projeções e co
 **Fora do slice:** mercado completo, balanço de salários/bilheteria/prêmios, estruturas, evolução anual, emprego dinâmico e temporada/carreira completas. Não chamar de MVP jogável, não usar progresso de teste sem migração para validar economia. Demonstrar fluxo e registrar problemas antes de ampliar.
 
 ## Fase 6 — Economia e fechamento financeiro
+
+**Registro da entrega anterior:** parte automatizada da Fase 5 concluída com 490 PASS / 0 FAIL, preservando 410 verificações anteriores. Smoke gráfico renderizado e inspecionado; interação manual permanece OWNER CHECK REQUIRED. Evidências e limitações em `reports/qa/phase-5-vertical-slice.md`. Nenhuma execução da Fase 6 autorizada ou iniciada.
 
 **Depende de:** slice; definição de F1, inclusive clube insolvente/calendário, não apenas valores monetários.
 
