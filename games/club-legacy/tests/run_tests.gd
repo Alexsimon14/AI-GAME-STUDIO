@@ -11,6 +11,8 @@ const SeasonTests = preload("res://tests/integration/season_tests.gd")
 const MatchTests = preload("res://tests/unit/match_engine_tests.gd")
 const MatchBatch = preload("res://tests/simulation/match_batch_tests.gd")
 const SliceTests = preload("res://tests/integration/vertical_slice_tests.gd")
+const FoundationTests = preload("res://tests/integration/ui_foundation_tests.gd")
+const FinanceTests = preload("res://tests/integration/finance_tests.gd")
 
 var _passed: int = 0
 var _failed: int = 0
@@ -60,7 +62,11 @@ func _run() -> void:
 	MatchBatch.new().run(_check)
 	print("Phase 0 + Phase 1 + Phase 2 + Phase 3 + Phase 4: %d passed, %d failed" % [_passed, _failed])
 	SliceTests.new().run(_check)
+	print("Through Phase 5: %d passed, %d failed" % [_passed, _failed])
+	FoundationTests.new().run(_check)
+	print("Through Phase 5.1: %d passed, %d failed" % [_passed, _failed])
+	FinanceTests.new().run(_check)
 	if "--force-failure" in OS.get_cmdline_user_args():
 		_check(false, "Intentional runner failure probe")
-	print("Phase 0 + Phase 1 + Phase 2 + Phase 3 + Phase 4 + Phase 5: %d passed, %d failed" % [_passed, _failed])
+	print("Through Phase 6: %d passed, %d failed" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)

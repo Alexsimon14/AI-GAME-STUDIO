@@ -1,5 +1,6 @@
 extends RefCounted
 const SeasonValidator = preload("res://scripts/domain/services/season_validator.gd")
+const FinanceValidator = preload("res://scripts/domain/finance/finance_validator.gd")
 ## Initial career aggregate. No SceneTree, persistence, or gameplay dependencies.
 
 var career: RefCounted
@@ -12,6 +13,7 @@ var selected_profile: String = ""
 var season: RefCounted = null
 var fixtures: Dictionary = {}
 var active_match: Variant = null
+var finance: RefCounted = null
 
 func roster_ids(club_id: String) -> PackedStringArray:
 	var result := PackedStringArray()
@@ -105,4 +107,5 @@ func validation_errors() -> PackedStringArray:
 		if player.position not in ["GK", "DEF", "MID", "ATT"] or player.age < 1 or player.overall < 0 or player.potential < player.overall or player.potential > 100 or player.condition < 1 or player.condition > 100:
 			errors.append("Invalid athlete attributes.")
 	errors.append_array(SeasonValidator.new().validate(self))
+	errors.append_array(FinanceValidator.new().validate(self))
 	return errors

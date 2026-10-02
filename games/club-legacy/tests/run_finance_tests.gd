@@ -1,7 +1,5 @@
 extends SceneTree
-## Focused application iteration; full regression remains tests/run_tests.gd.
-const Tests = preload("res://tests/integration/vertical_slice_tests.gd")
-const Foundation = preload("res://tests/integration/ui_foundation_tests.gd")
+const Tests = preload("res://tests/integration/finance_tests.gd")
 var passed: int = 0
 var failed: int = 0
 
@@ -18,6 +16,5 @@ func _check(ok: bool, description: String) -> void:
 
 func _run() -> void:
 	Tests.new().run(_check)
-	Foundation.new().run(_check)
-	print("Phase 5 focused: %d passed, %d failed" % [passed, failed])
+	print("Phase 6 focused: %d passed, %d failed" % [passed, failed])
 	quit(0 if failed == 0 else 1)

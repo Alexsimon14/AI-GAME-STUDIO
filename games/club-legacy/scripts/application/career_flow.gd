@@ -11,6 +11,7 @@ const MatchInputModel = preload("res://scripts/domain/match/match_input.gd")
 const Checkpoint = preload("res://scripts/persistence/match_checkpoint_codec.gd")
 const Codec = preload("res://scripts/persistence/world_codec.gd")
 const Repository = preload("res://scripts/persistence/save_repository.gd")
+const Finance = preload("res://scripts/domain/finance/finance_service.gd")
 var world: RefCounted = null
 var match_state: RefCounted = null
 var last_result: RefCounted = null
@@ -39,6 +40,7 @@ func create_career(manager_name: String, profile: String, seed_value: int = 1001
 	var created: Dictionary = Factory.new().create(Config, seed_value, manager_name.strip_edges(), profile, career_namespace)
 	if not created.errors.is_empty(): return _fail("Informe um nome e um perfil válidos.")
 	if not Season.new().create(created.world).errors.is_empty(): return _fail("Não foi possível preparar a temporada.")
+	if not Finance.new().initialize(created.world).errors.is_empty(): return _fail("Não foi possível preparar as finanças.")
 	world = created.world
 	_replace_on_save = replace_existing
 	match_state = null
@@ -67,7 +69,7 @@ func next_fixture_id() -> String:
 	return ""
 
 func navigate(target: String) -> bool:
-	if target not in ["START", "HOME", "SQUAD", "LINEUP", "MATCH", "RESULT", "TABLE"]: return _fail("Esta tela não está disponível.")
+	if target not in ["START", "HOME", "SQUAD", "LINEUP", "MATCH", "RESULT", "TABLE", "FINANCES"]: return _fail("Esta tela não está disponível.")
 	if target != "START" and world == null: return _fail("Crie ou carregue uma carreira primeiro.")
 	if target == "MATCH" and match_state == null: return _fail("Não há partida para acompanhar.")
 	if target == "RESULT" and last_result == null: return _fail("Não há resultado detalhado nesta sessão.")
@@ -176,6 +178,7 @@ func finish_round() -> bool:
 		var simulated: Dictionary = _simulator.simulate(built.input)
 		if not simulated.errors.is_empty() or not _adapter.submit(candidate, simulated.result, "slice-match:" + id).errors.is_empty(): return _fail("Não foi possível concluir os outros jogos; tente novamente.")
 	if not Season.new().commit_round(candidate, round_number, "slice-round:" + str(round_number)).errors.is_empty(): return _fail("A rodada não pôde ser confirmada.")
+	if not Finance.new().process_round(candidate, round_number).errors.is_empty(): return _fail("Não foi possível confirmar o balanço; a rodada anterior foi preservada.")
 	if candidate.season.status == "AWAITING_COMPLETION":
 		if not Season.new().finish(candidate, "slice-season:" + candidate.season.id).errors.is_empty(): return _fail("Não foi possível encerrar a competição.")
 	if not candidate.validation_errors().is_empty(): return _fail("A rodada ficou inválida; seu estado anterior foi preservado.")
@@ -214,6 +217,14 @@ func needs_replacement_confirmation() -> bool:
 func load_career() -> bool:
 	var loaded: Dictionary = repository.load_world()
 	if not loaded.errors.is_empty(): return _fail("Não foi possível carregar uma carreira válida. Nenhum arquivo foi alterado.")
+	if loaded.world.season == null: return _fail("Este mundo de geração ainda não possui temporada. O save foi preservado.")
+	# Generation/competition harness worlds may have an explicit null ledger.
+	# An operational career initializes from its existing balance, never bills history.
+	if loaded.world.finance == null:
+		var baseline: int = 0
+		for key in loaded.world.season.round_states:
+			if loaded.world.season.round_states[key] == "COMMITTED": baseline = maxi(baseline, int(key))
+		if not Finance.new().initialize(loaded.world, preload("res://resources/config/finance_config.tres"), baseline).errors.is_empty(): return _fail("Não foi possível inicializar o marco financeiro. O save foi preservado.")
 	var restored: RefCounted = null
 	if loaded.world.active_match != null:
 		var decoded: Dictionary = Checkpoint.new().decode(loaded.world.active_match)

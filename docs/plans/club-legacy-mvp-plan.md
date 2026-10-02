@@ -1,5 +1,15 @@
 # Club Legacy — plano de implementação do MVP
 
+## Execução autorizada — Fase 6 (02/10/2026)
+
+Somente economia básica e Finanças, após aprovação das Fases 5/5.1. Ordem: ledger/configuração TEST e validação → codec/schema 4 e migração real 3→4 → integração atômica no candidato de fechamento da rodada → tela Finanças com componentes aprovados → regressão completa, probe e smoke nas duas resoluções → relatório QA. Preservar os testes e o staging existentes.
+
+Ledger canônico com saldo materializado reconciliável, moeda inteira fictícia, abertura dos 12 clubes, bilheteria determinística somente do mandante, salários dos contratos por rodada e manutenção TEST. O proprietário autorizou saldo negativo com despesas obrigatórias, sem resgate, falência ou demissão. Isso resolve o comportamento limitado desta fase, sem resolver toda a política futura F1. Não incluir prêmio por vitória nem premiação anual nesta entrega.
+
+Migração preserva o mundo e a partida ativa, cria abertura no saldo existente e fixa o último commit esportivo como marco; não cobrar rodadas antigas. Mundo inicial de geração pode permanecer sem economia até inicialização explícita; carreira apresentada pelo fluxo sempre recebe ledger. Save não grava migração automaticamente. Sem mercado, estruturas, empregos, transição anual, Android, monetização, commit ou push. Estado: execução iniciada; evidências finais ficarão em `reports/qa/phase-6-economy.md`.
+
+**Resultado desta execução:** Fase 6 concluída somente nos critérios headless/smoke: 700/0 (533 anteriores +167 novos), probe intencional exit 1, import/startup/focadas/smoke aprovados. Schema 4 e migração real, 26 capturas wide/narrow, Nova/continuar 675/694 px. Evidências e limites em [QA Fase 6](../../reports/qa/phase-6-economy.md). Nenhum avanço para Fase 7.
+
 **01/10/2026 · Game Architect · proposta de execução futura**
 
 Base: [GDD v1 aprovado para arquitetura](../gdd/club-legacy-gdd-v1.md), [arquitetura v1](../architecture/club-legacy-architecture-v1.md), [conceito](../game-concepts/club-legacy-concept.md) e [AGENTS.md](../../AGENTS.md). Nenhuma fase foi executada nesta entrega. O pedido atual autoriza somente estes documentos; não criar projeto, cenas, código ou builds agora.
@@ -98,9 +108,17 @@ UI mínima de criação/Home/escalação/partida/tabela, usando projeções e co
 
 **Fora do slice:** mercado completo, balanço de salários/bilheteria/prêmios, estruturas, evolução anual, emprego dinâmico e temporada/carreira completas. Não chamar de MVP jogável, não usar progresso de teste sem migração para validar economia. Demonstrar fluxo e registrar problemas antes de ampliar.
 
+## Etapa autorizada 5.1 — UI/UX Foundation e identidade visual
+
+**02/10/2026.** Fase 5 e Owner Check manual aprovados pelo proprietário. Somente apresentação: inspecionar referência oficial, centralizar tokens, criar componentes usados e AppShell sidebar/topbar; projetar Home com fixtures/tabela/resultados reais, identidades fictícias locais, escalação em campo estático e banco, controles táticos segmentados, central de partida e resultado esportivos. Preservar domínio, motor, schema/save e comandos; não implementar sistemas futuros. Navegação futura apenas desabilitada. Continuação mostra preview real do save ativo antes de retomar. Usar Containers e scroll em 1100×780 e tamanho reduzido, sem layout Android final. Preservar 490 verificações, acrescentar testes estruturais/dados/interação sem pixels, executar import/suíte/probe/startup/smoke observado e relatório `reports/qa/phase-5-1-ui-ux-foundation.md`. Aprovação estética: **OWNER VISUAL CHECK REQUIRED**. Sem instalação, staging, commit/push ou Fase 6.
+
+Direção inspecionada: navy quase preto, dourado contido, sidebar estável, cabeçalho da carreira, duelo de badges como foco; cards densos abaixo. Assinatura: campo tático escuro com camisas/slots originais. Tokens: background #0b1018, surface #141e2b, elevated #1d2a39, gold #dfb76d, text #edf0f4, secondary #a3b0bf. Tipografia de sistema: Bahnschrift para títulos esportivos quando disponível, Segoe UI/Noto Sans para leitura. Sem clima/datas/notícias/retratos reais da imagem; não inventar métricas. Verificar renderização e regressões antes de encerrar.
+
+**Entrega 5.1:** 533 PASS / 0 FAIL (490 preservados + 43 novos); probe com única falha intencional e exit 1; import/startup e smoke gráfico executados. Layout observado em 1100×780 e 860×650, estética **OWNER VISUAL CHECK REQUIRED**. Relatório `reports/qa/phase-5-1-ui-ux-foundation.md`. Fase 6 não iniciada.
+
 ## Fase 6 — Economia e fechamento financeiro
 
-**Registro da entrega anterior:** parte automatizada da Fase 5 concluída com 490 PASS / 0 FAIL, preservando 410 verificações anteriores. Smoke gráfico renderizado e inspecionado; interação manual permanece OWNER CHECK REQUIRED. Evidências e limitações em `reports/qa/phase-5-vertical-slice.md`. Nenhuma execução da Fase 6 autorizada ou iniciada.
+**Registro da entrega anterior:** parte automatizada da Fase 5 concluída com 490 PASS / 0 FAIL, preservando 410 verificações anteriores. Smoke gráfico renderizado e inspecionado; interação manual posteriormente aprovada pelo proprietário na autorização 5.1. Evidências e limitações em `reports/qa/phase-5-vertical-slice.md`. Nenhuma execução da Fase 6 autorizada ou iniciada.
 
 **Depende de:** slice; definição de F1, inclusive clube insolvente/calendário, não apenas valores monetários.
 

@@ -1,10 +1,13 @@
 extends Control
 const Views = preload("res://ui/slice_views.gd")
 const Palette = preload("res://ui/slice_theme.gd")
+const Shell = preload("res://ui/app_shell.gd")
+const Components = preload("res://ui/game_components.gd")
 var session: Node
 var match_labels: Dictionary = {}
 var notice_label: Label
 var _views = Views.new()
+var _shell = Shell.new()
 var _built_screen: String = ""
 var _built_commands: int = -1
 var _built_match: RefCounted
@@ -30,6 +33,7 @@ func _ready() -> void:
 	get_node("DialogLayer").add_child(_confirm)
 	_confirm.confirmed.connect(func(): action("create_career", [_pending_new[0], _pending_new[1], 1001, "", true]))
 	session.changed.connect(_on_changed)
+	_shell.build(self, get_node("ScreenHost"))
 	render()
 
 func action(method: String, arguments: Array = []) -> bool:
@@ -57,7 +61,7 @@ func _on_changed() -> void:
 		render()
 
 func render() -> void:
-	var host = get_node("ScreenHost")
+	var host = _shell.body
 	for child in host.get_children():
 		host.remove_child(child)
 		child.queue_free()
@@ -66,6 +70,8 @@ func render() -> void:
 	_built_screen = session.flow.screen
 	_built_match = session.flow.match_state
 	_built_commands = session.flow.match_state.commands.size() if session.flow.match_state != null else -1
+	_shell.refresh(session.flow)
+	_shell.scroll.scroll_vertical = 0
 	_views.build(self, host)
 
 func update_match() -> void:
@@ -83,12 +89,19 @@ func update_match() -> void:
 	match_labels.score.text = _views._score(view.teams.home.club_id, view.teams.away.club_id, view.stats)
 	var phase: String = "INTERVALO" if view.phase == "HALF_TIME" else ("FIM DA PARTIDA" if view.phase == "FINISHED" else ("PAUSADO" if session.flow.paused else "EM JOGO"))
 	match_labels.clock.text = "%d'  ·  %s  ·  %dx" % [view.minute, phase, session.flow.speed]
-	match_labels.stats.text = _views._stats(view.stats, view.minute)
-	match_labels.pause.text = "CONTINUAR" if session.flow.paused else "PAUSAR"
+	_views.update_comparisons(match_labels.comparisons, view.stats)
+	match_labels.possession.value = view.stats.home.possession_percent
+	match_labels.pause.text = ("INICIAR SEGUNDO TEMPO" if view.phase == "HALF_TIME" else "CONTINUAR") if session.flow.paused else "PAUSAR"
+	for value in match_labels.speeds: Components.selected(match_labels.speeds[value], value == session.flow.speed)
+	match_labels.retry.visible = view.phase == "FINISHED"
+	match_labels.pause.disabled = view.phase == "FINISHED"
 	match_labels.events.text = ""
 	for event in view.events.slice(maxi(0, view.events.size() - 18)):
-		match_labels.events.append_text(_views.event_text(event) + "\n")
+		match_labels.events.append_text(_views.event_line(event))
 
 func show_message(message: String) -> void:
+	if session.flow.match_state != null:
+		session.flow.set_paused(true)
+		update_match()
 	_dialog.dialog_text = message
 	_dialog.popup_centered(Vector2i(500, 200))

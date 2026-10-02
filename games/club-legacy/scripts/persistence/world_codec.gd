@@ -1,6 +1,7 @@
 extends RefCounted
 const CompetitionCodec = preload("res://scripts/persistence/competition_codec.gd")
 const MatchCheckpoint = preload("res://scripts/persistence/match_checkpoint_codec.gd")
+const FinanceCodec = preload("res://scripts/persistence/finance_codec.gd")
 ## Explicit Phase 2 schema. Integer fields are decimal strings, never JSON floats.
 const World = preload("res://scripts/domain/models/world_state.gd")
 const WorldConfig = preload("res://resources/config/world_config.gd")
@@ -28,6 +29,7 @@ func encode(world) -> Dictionary:
 			payload[pair[0]].append(_encode_entity(world.get(pair[0])[id], pair[1]))
 	payload.merge(CompetitionCodec.new().encode(world))
 	payload["active_match"] = world.active_match.duplicate(true) if world.active_match is Dictionary else null
+	payload["finance"] = FinanceCodec.new().encode(world.finance)
 	return {"payload": payload, "errors": errors}
 
 func _encode_entity(entity, kind: String) -> Dictionary:
@@ -37,7 +39,7 @@ func _encode_entity(entity, kind: String) -> Dictionary:
 		output[field] = str(value) if SCHEMAS[kind][field] == "i" else value
 	return output
 
-func decode(payload: Variant, legacy_schema_one: bool = false) -> Dictionary:
+func decode(payload: Variant, legacy_schema_one: bool = false, legacy_finance: bool = false) -> Dictionary:
 	var errors := PackedStringArray()
 	if not payload is Dictionary:
 		return _failure("Payload must be a dictionary.")
@@ -76,6 +78,11 @@ func decode(payload: Variant, legacy_schema_one: bool = false) -> Dictionary:
 		world.active_match = payload.active_match.duplicate(true) if payload.active_match is Dictionary else payload.active_match
 		errors = MatchCheckpoint.new().validate_world(world, world.active_match)
 		if not errors.is_empty(): return {"world": null, "errors": errors}
+	if not legacy_finance:
+		if not payload.has("finance"): return _failure("Missing financial state field.")
+		var decoded_finance: Dictionary = FinanceCodec.new().decode(payload.finance)
+		if not decoded_finance.errors.is_empty(): return {"world": null, "errors": decoded_finance.errors}
+		world.finance = decoded_finance.state
 	errors = world.validation_errors()
 	if world.career.next_entity_serial < 1:
 		errors.append("Invalid ID counter.")
@@ -99,7 +106,7 @@ func decode(payload: Variant, legacy_schema_one: bool = false) -> Dictionary:
 	if tiers != [1, 2]:
 		errors.append("Invalid division tiers.")
 	for club in world.clubs.values():
-		if club.profile not in ["PEQUENO", "MEDIO", "ELITE"] or club.cash < 0 or club.fans < 0 or club.capacity < 0 or club.training_level < 0:
+		if club.profile not in ["PEQUENO", "MEDIO", "ELITE"] or (club.cash < 0 and world.finance == null) or club.fans < 0 or club.capacity < 0 or club.training_level < 0:
 			errors.append("Invalid initial club attributes.")
 	return {"world": world if errors.is_empty() else null, "errors": errors}
 

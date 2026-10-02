@@ -2,8 +2,9 @@ extends RefCounted
 
 const Codec = preload("res://scripts/persistence/world_codec.gd")
 const SeasonService = preload("res://scripts/domain/services/season_service.gd")
-const SCHEMA_VERSION: int = 3
-const SAVE_VERSION: String = "phase-4-v1"
+const Finance = preload("res://scripts/domain/finance/finance_service.gd")
+const SCHEMA_VERSION: int = 4
+const SAVE_VERSION: String = "phase-6-v1"
 const ENGINE_VERSION: String = "4.7.2.stable.official.ed1daf0bf"
 
 func pack(world, revision: int) -> Dictionary:
@@ -36,9 +37,9 @@ func unpack(text: String) -> Dictionary:
 	for field in ["schema_version", "save_version", "engine_version", "revision", "checksum", "payload"]:
 		if not data.has(field):
 			return failure("Missing envelope field: " + field)
-	if not (data.schema_version is int or data.schema_version is float) or (data.schema_version != 1 and data.schema_version != 2 and data.schema_version != SCHEMA_VERSION):
+	if not (data.schema_version is int or data.schema_version is float) or (data.schema_version != 1 and data.schema_version != 2 and data.schema_version != 3 and data.schema_version != SCHEMA_VERSION):
 		return failure("Unsupported schema; migration unavailable.")
-	var expected_version: String = "phase-2-v1" if data.schema_version == 1 else ("phase-3-v1" if data.schema_version == 2 else SAVE_VERSION)
+	var expected_version: String = "phase-2-v1" if data.schema_version == 1 else ("phase-3-v1" if data.schema_version == 2 else ("phase-4-v1" if data.schema_version == 3 else SAVE_VERSION))
 	if data.save_version != expected_version or not data.engine_version is String:
 		return failure("Unsupported save metadata.")
 	var codec = Codec.new()
@@ -56,25 +57,27 @@ func unpack(text: String) -> Dictionary:
 
 ## Called only after original envelope checksum/version validation.
 func migrate(data: Dictionary) -> Dictionary:
+	var schema = data.get("schema_version")
+	if schema != 1 and schema != 2 and schema != 3 and schema != SCHEMA_VERSION:
+		return {"errors": PackedStringArray(["Unsupported schema; migration unavailable."])}
 	if data.schema_version == SCHEMA_VERSION:
 		return {"envelope": data, "migrated": false, "errors": PackedStringArray()}
-	if data.schema_version == 2:
-		var updated_two: Dictionary = data.duplicate(true)
-		if not updated_two.get("payload") is Dictionary: return {"errors": PackedStringArray(["Invalid legacy payload."])}
-		updated_two.payload["active_match"] = null
-		var old_world: Dictionary = Codec.new().decode(updated_two.payload)
-		if not old_world.errors.is_empty(): return {"errors": old_world.errors}
-		updated_two.schema_version = SCHEMA_VERSION
-		updated_two.save_version = SAVE_VERSION
-		updated_two.checksum = checksum(updated_two)
-		return {"envelope": updated_two, "migrated": true, "errors": PackedStringArray()}
-	if data.schema_version != 1:
-		return {"errors": PackedStringArray(["Unsupported schema; migration unavailable."])}
+	var payload: Variant = data.get("payload")
+	if not payload is Dictionary: return {"errors": PackedStringArray(["Invalid legacy payload."])}
+	payload = payload.duplicate(true)
+	if data.schema_version == 2: payload["active_match"] = null
 	var codec = Codec.new()
-	var legacy: Dictionary = codec.decode(data.payload, true)
+	var legacy: Dictionary = codec.decode(payload, data.schema_version == 1, true)
 	if not legacy.errors.is_empty(): return {"errors": legacy.errors}
-	var created: Dictionary = SeasonService.new().create(legacy.world)
-	if not created.errors.is_empty(): return {"errors": created.errors}
+	if data.schema_version == 1:
+		var created: Dictionary = SeasonService.new().create(legacy.world)
+		if not created.errors.is_empty(): return {"errors": created.errors}
+	var baseline: int = 0
+	if legacy.world.season != null:
+		for key in legacy.world.season.round_states:
+			if legacy.world.season.round_states[key] == "COMMITTED": baseline = maxi(baseline, int(key))
+		var financial: Dictionary = Finance.new().initialize(legacy.world, preload("res://resources/config/finance_config.tres"), baseline)
+		if not financial.errors.is_empty(): return {"errors": financial.errors}
 	var encoded: Dictionary = codec.encode(legacy.world)
 	if not encoded.errors.is_empty(): return {"errors": encoded.errors}
 	var updated: Dictionary = data.duplicate(true)
@@ -83,6 +86,5 @@ func migrate(data: Dictionary) -> Dictionary:
 	updated.payload = encoded.payload
 	updated.checksum = checksum(updated)
 	return {"envelope": updated, "migrated": true, "errors": PackedStringArray()}
-
 func failure(reason: String) -> Dictionary:
 	return {"world": null, "revision": 0, "errors": PackedStringArray([reason])}
