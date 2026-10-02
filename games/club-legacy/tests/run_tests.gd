@@ -6,6 +6,7 @@ const SessionScript = preload("res://scripts/application/game_session.gd")
 const MainScene = preload("res://scenes/main.tscn")
 const DefaultConfig = preload("res://resources/config/bootstrap_config.tres")
 const WorldTests = preload("res://tests/unit/world_model_tests.gd")
+const PersistenceTests = preload("res://tests/integration/persistence_tests.gd")
 
 var _passed: int = 0
 var _failed: int = 0
@@ -46,7 +47,9 @@ func _run() -> void:
 	main.free()
 	print("Phase 0: %d passed, %d failed" % [_passed, _failed])
 	WorldTests.new().run(_check)
+	print("Phase 0 + Phase 1: %d passed, %d failed" % [_passed, _failed])
+	PersistenceTests.new().run(_check)
 	if "--force-failure" in OS.get_cmdline_user_args():
 		_check(false, "Intentional runner failure probe")
-	print("Phase 0 + Phase 1: %d passed, %d failed" % [_passed, _failed])
+	print("Phase 0 + Phase 1 + Phase 2: %d passed, %d failed" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
