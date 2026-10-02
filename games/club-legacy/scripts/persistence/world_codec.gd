@@ -1,4 +1,5 @@
 extends RefCounted
+const CompetitionCodec = preload("res://scripts/persistence/competition_codec.gd")
 ## Explicit Phase 2 schema. Integer fields are decimal strings, never JSON floats.
 const World = preload("res://scripts/domain/models/world_state.gd")
 const WorldConfig = preload("res://resources/config/world_config.gd")
@@ -23,6 +24,7 @@ func encode(world) -> Dictionary:
 		ids.sort()
 		for id in ids:
 			payload[pair[0]].append(_encode_entity(world.get(pair[0])[id], pair[1]))
+	payload.merge(CompetitionCodec.new().encode(world))
 	return {"payload": payload, "errors": errors}
 
 func _encode_entity(entity, kind: String) -> Dictionary:
@@ -32,7 +34,7 @@ func _encode_entity(entity, kind: String) -> Dictionary:
 		output[field] = str(value) if SCHEMAS[kind][field] == "i" else value
 	return output
 
-func decode(payload: Variant) -> Dictionary:
+func decode(payload: Variant, legacy_schema_one: bool = false) -> Dictionary:
 	var errors := PackedStringArray()
 	if not payload is Dictionary:
 		return _failure("Payload must be a dictionary.")
@@ -64,6 +66,9 @@ func decode(payload: Variant) -> Dictionary:
 			if collection.has(entity.id):
 				return _failure("Duplicate entity ID: " + entity.id)
 			collection[entity.id] = entity
+	if not legacy_schema_one:
+		errors = CompetitionCodec.new().decode(payload, world)
+		if not errors.is_empty(): return {"world": null, "errors": errors}
 	errors = world.validation_errors()
 	if world.career.next_entity_serial < 1:
 		errors.append("Invalid ID counter.")

@@ -38,3 +38,5 @@ The normal runner passed 14 checks (exit 0); the intentional failure probe retur
 Phase 1 adds in-memory world creation through `scripts/domain/services/world_factory.gd`: 12 fictional clubs, two divisions, 216 players and 217 contracts. The same runner now executes Phase 0 + Phase 1: **88 passed, 0 failed**, with TEST / PLACEHOLDER generation configuration. No gameplay or save system is implemented. See [Phase 1 QA report](reports/qa/phase-1-world-model.md).
 
 Phase 2 adds explicit JSON schema 1 persistence, checksum and redundant A/B snapshots under `user://`. The runner now verifies all three phases: **136 passed, 0 failed**; tests use and clean their own directory. No gameplay or save UI is implemented. See [Phase 2 QA report](reports/qa/phase-2-persistence.md).
+
+Phase 3 adds a deterministic calendar, externally supplied results, derived standings and season completion. Persistence uses schema 2 with a tested schema 1 migration. The runner verifies **322 passed, 0 failed**, preserving the previous 136 checks. No Match Engine or annual division transition is implemented. See [Phase 3 QA report](reports/qa/phase-3-season-competition.md).

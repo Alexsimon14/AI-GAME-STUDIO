@@ -58,6 +58,8 @@ Smoke Android no bootstrap, se ambiente estiver disponível/autorizado para exec
 
 ## Fase 3 — Calendário, resultados e tabela
 
+**Execução autorizada:** Season/Fixture, calendário round-robin, classificação derivada e comandos externos idempotentes de resultado/commit. Persistir rodadas/chaves/resultados em schema 2 com migration 1→2 sem progresso inventado; determinar acesso/queda sem trocar divisões. Preservar 136 testes anteriores. Sem Match Engine/Fase 4, sem finanças ou transição anual. Relatório: `reports/qa/phase-3-season-competition.md`.
+
 **Depende de:** fase 2.
 
 **Entregas:** fixtures persistentes, calendário turno/returno, TableCalculator, estados de fixture/rodada, commit idempotente de resultado e tabela. Para testar antes do motor, usar MatchResult sintético somente em testes; não sorteio temporário de placar entregue como gameplay.
