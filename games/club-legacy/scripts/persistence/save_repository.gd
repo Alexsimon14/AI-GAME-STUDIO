@@ -60,7 +60,7 @@ func save_world(world) -> Dictionary:
 		if FileAccess.file_exists(_path(slot)):
 			var inspected: Dictionary = _read(slot)
 			for reason in inspected.errors:
-				if reason.begins_with("Unsupported schema") or reason.begins_with("Unsupported save metadata"):
+				if reason.begins_with("Unsupported schema") or reason.begins_with("Unsupported save metadata") or reason.begins_with("Unsupported match") or reason.begins_with("Unsupported Match Engine"):
 					return _error("Refusing to overwrite an incompatible save version.")
 	if has_snapshot and previous.revision == 9223372036854775807:
 		return _error("Revision exhausted.")

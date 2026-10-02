@@ -68,6 +68,8 @@ Smoke Android no bootstrap, se ambiente estiver disponível/autorizado para exec
 
 ## Fase 4 — Match Engine independente e RNG
 
+**Execução autorizada:** somente Fase 4, motor incremental/headless, snapshots independentes, três substituições e comandos táticos em fronteiras. Parâmetros TEST / PLACEHOLDER, RNG dedicado e checkpoint da partida ativa com evolução explícita do save para schema 3 (migração 2→3 sem partida inventada). Integração fina com Season sem dependência interna do motor; preservar 322 testes e executar batch de pelo menos 10.000 partidas. Sem UI/Vertical Slice/Fase 5. Relatório: `reports/qa/phase-4-match-engine.md`.
+
 **Depende de:** fase 3; especificação inicial testável de P1/P2/T1/E1, com parâmetros experimentais explícitos.
 
 **Entregas:** MatchInput/State/Event/Result, contribuição de setores, contexto tático, geração/resolução de chances, desgaste, três trocas, intervalo e resumos sustentados. Mesmo caminho incremental/headless, streams isolados, comandos ordenados e persistência da partida ativa.

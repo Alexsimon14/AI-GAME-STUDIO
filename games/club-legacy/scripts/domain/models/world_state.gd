@@ -11,6 +11,7 @@ var leagues: Dictionary = {}
 var selected_profile: String = ""
 var season: RefCounted = null
 var fixtures: Dictionary = {}
+var active_match: Variant = null
 
 func roster_ids(club_id: String) -> PackedStringArray:
 	var result := PackedStringArray()

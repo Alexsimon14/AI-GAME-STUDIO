@@ -2,8 +2,8 @@ extends RefCounted
 
 const Codec = preload("res://scripts/persistence/world_codec.gd")
 const SeasonService = preload("res://scripts/domain/services/season_service.gd")
-const SCHEMA_VERSION: int = 2
-const SAVE_VERSION: String = "phase-3-v1"
+const SCHEMA_VERSION: int = 3
+const SAVE_VERSION: String = "phase-4-v1"
 const ENGINE_VERSION: String = "4.7.2.stable.official.ed1daf0bf"
 
 func pack(world, revision: int) -> Dictionary:
@@ -36,9 +36,9 @@ func unpack(text: String) -> Dictionary:
 	for field in ["schema_version", "save_version", "engine_version", "revision", "checksum", "payload"]:
 		if not data.has(field):
 			return failure("Missing envelope field: " + field)
-	if not (data.schema_version is int or data.schema_version is float) or (data.schema_version != 1 and data.schema_version != SCHEMA_VERSION):
+	if not (data.schema_version is int or data.schema_version is float) or (data.schema_version != 1 and data.schema_version != 2 and data.schema_version != SCHEMA_VERSION):
 		return failure("Unsupported schema; migration unavailable.")
-	var expected_version: String = "phase-2-v1" if data.schema_version == 1 else SAVE_VERSION
+	var expected_version: String = "phase-2-v1" if data.schema_version == 1 else ("phase-3-v1" if data.schema_version == 2 else SAVE_VERSION)
 	if data.save_version != expected_version or not data.engine_version is String:
 		return failure("Unsupported save metadata.")
 	var codec = Codec.new()
@@ -58,6 +58,16 @@ func unpack(text: String) -> Dictionary:
 func migrate(data: Dictionary) -> Dictionary:
 	if data.schema_version == SCHEMA_VERSION:
 		return {"envelope": data, "migrated": false, "errors": PackedStringArray()}
+	if data.schema_version == 2:
+		var updated_two: Dictionary = data.duplicate(true)
+		if not updated_two.get("payload") is Dictionary: return {"errors": PackedStringArray(["Invalid legacy payload."])}
+		updated_two.payload["active_match"] = null
+		var old_world: Dictionary = Codec.new().decode(updated_two.payload)
+		if not old_world.errors.is_empty(): return {"errors": old_world.errors}
+		updated_two.schema_version = SCHEMA_VERSION
+		updated_two.save_version = SAVE_VERSION
+		updated_two.checksum = checksum(updated_two)
+		return {"envelope": updated_two, "migrated": true, "errors": PackedStringArray()}
 	if data.schema_version != 1:
 		return {"errors": PackedStringArray(["Unsupported schema; migration unavailable."])}
 	var codec = Codec.new()

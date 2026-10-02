@@ -1,5 +1,6 @@
 extends RefCounted
 const CompetitionCodec = preload("res://scripts/persistence/competition_codec.gd")
+const MatchCheckpoint = preload("res://scripts/persistence/match_checkpoint_codec.gd")
 ## Explicit Phase 2 schema. Integer fields are decimal strings, never JSON floats.
 const World = preload("res://scripts/domain/models/world_state.gd")
 const WorldConfig = preload("res://resources/config/world_config.gd")
@@ -13,6 +14,7 @@ const SCHEMAS: Dictionary = {"career":{"id":"s","seed":"i","manager_id":"s","nex
 
 func encode(world) -> Dictionary:
 	var errors: PackedStringArray = world.validation_errors()
+	errors.append_array(MatchCheckpoint.new().validate_world(world, world.active_match))
 	if not errors.is_empty():
 		return {"payload": null, "errors": errors}
 	var payload := {"selected_profile": world.selected_profile,
@@ -25,6 +27,7 @@ func encode(world) -> Dictionary:
 		for id in ids:
 			payload[pair[0]].append(_encode_entity(world.get(pair[0])[id], pair[1]))
 	payload.merge(CompetitionCodec.new().encode(world))
+	payload["active_match"] = world.active_match.duplicate(true) if world.active_match is Dictionary else null
 	return {"payload": payload, "errors": errors}
 
 func _encode_entity(entity, kind: String) -> Dictionary:
@@ -68,6 +71,10 @@ func decode(payload: Variant, legacy_schema_one: bool = false) -> Dictionary:
 			collection[entity.id] = entity
 	if not legacy_schema_one:
 		errors = CompetitionCodec.new().decode(payload, world)
+		if not errors.is_empty(): return {"world": null, "errors": errors}
+		if not payload.has("active_match"): return _failure("Missing active match field.")
+		world.active_match = payload.active_match.duplicate(true) if payload.active_match is Dictionary else payload.active_match
+		errors = MatchCheckpoint.new().validate_world(world, world.active_match)
 		if not errors.is_empty(): return {"world": null, "errors": errors}
 	errors = world.validation_errors()
 	if world.career.next_entity_serial < 1:
